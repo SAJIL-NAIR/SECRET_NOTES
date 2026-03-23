@@ -29,10 +29,19 @@ button {
     border-radius: 8px;
     color: white;
     cursor: pointer;
+    margin: 5px;
 }
 
 button:hover {
     background: #0072ff;
+}
+
+#app {
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 15px;
+    display: inline-block;
+    backdrop-filter: blur(10px);
 }
 
 #notesList {
@@ -45,4 +54,9 @@ li {
     margin: 10px;
     padding: 10px;
     border-radius: 8px;
+    transition: 0.3s;
+}
+
+li:hover {
+    transform: scale(1.05);
 }
