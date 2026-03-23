@@ -1,5 +1,6 @@
 let masterKey = "";
 let timeout;
+let editingIndex = -1;
 
 // Load check
 window.onload = function () {
@@ -49,18 +50,29 @@ function decrypt(text) {
     return bytes.toString(CryptoJS.enc.Utf8);
 }
 
-// Save note
+// Save / Update note
 function saveNote() {
     let note = document.getElementById("noteInput").value;
     if (!note) return;
 
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
-    notes.push({
-        text: encrypt(note),
-        raw: note.toLowerCase(),
-        time: new Date().toLocaleString()
-    });
+    if (editingIndex === -1) {
+        // New note
+        notes.push({
+            text: encrypt(note),
+            raw: note.toLowerCase(),
+            time: new Date().toLocaleString()
+        });
+    } else {
+        // Update existing note
+        notes[editingIndex] = {
+            text: encrypt(note),
+            raw: note.toLowerCase(),
+            time: new Date().toLocaleString()
+        };
+        editingIndex = -1;
+    }
 
     localStorage.setItem("notes", JSON.stringify(notes));
 
@@ -82,7 +94,7 @@ function loadNotes() {
             <span id="note-${index}">••••••</span><br>
             <small>${n.time}</small><br>
             <button onclick="toggleNote(${index})">Show / Hide</button>
-            <button onclick="editNote(${index})">Edit</button>
+            <button onclick="startEdit(${index})">Edit</button>
             <button onclick="exportNote(${index})">Export</button>
             <button onclick="deleteNote(${index})">Delete</button>
         `;
@@ -103,26 +115,16 @@ function toggleNote(index) {
     }
 }
 
-// Edit note
-function editNote(index) {
+// Start edit (NO popup now 🔥)
+function startEdit(index) {
     let notes = JSON.parse(localStorage.getItem("notes"));
     let current = decrypt(notes[index].text);
 
-    let updated = prompt("Edit your note:", current);
-
-    if (updated !== null && updated !== "") {
-        notes[index] = {
-            text: encrypt(updated),
-            raw: updated.toLowerCase(),
-            time: new Date().toLocaleString()
-        };
-
-        localStorage.setItem("notes", JSON.stringify(notes));
-        loadNotes();
-    }
+    document.getElementById("noteInput").value = current;
+    editingIndex = index;
 }
 
-// Export SINGLE note as .txt
+// Export note as TXT
 function exportNote(index) {
     let notes = JSON.parse(localStorage.getItem("notes"));
     let content = decrypt(notes[index].text);
@@ -132,7 +134,7 @@ function exportNote(index) {
 
     let a = document.createElement("a");
     a.href = url;
-    a.download = "note.txt";
+    a.download = `note-${index + 1}.txt`;
     a.click();
 }
 
@@ -170,7 +172,7 @@ function searchNotes() {
                 <span id="note-${index}">••••••</span><br>
                 <small>${n.time}</small><br>
                 <button onclick="toggleNote(${index})">Show / Hide</button>
-                <button onclick="editNote(${index})">Edit</button>
+                <button onclick="startEdit(${index})">Edit</button>
                 <button onclick="exportNote(${index})">Export</button>
                 <button onclick="deleteNote(${index})">Delete</button>
             `;
