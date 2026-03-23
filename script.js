@@ -14,7 +14,6 @@ window.onload = function () {
 // Set password
 function setPassword() {
     let pass = document.getElementById("setPass").value;
-
     if (!pass) return alert("Enter password");
 
     localStorage.setItem("masterPass", pass);
@@ -84,6 +83,7 @@ function loadNotes() {
             <small>${n.time}</small><br>
             <button onclick="toggleNote(${index})">Show / Hide</button>
             <button onclick="editNote(${index})">Edit</button>
+            <button onclick="exportNote(${index})">Export</button>
             <button onclick="deleteNote(${index})">Delete</button>
         `;
 
@@ -91,7 +91,7 @@ function loadNotes() {
     });
 }
 
-// Toggle
+// Show / Hide
 function toggleNote(index) {
     let notes = JSON.parse(localStorage.getItem("notes"));
     let el = document.getElementById(`note-${index}`);
@@ -120,6 +120,20 @@ function editNote(index) {
         localStorage.setItem("notes", JSON.stringify(notes));
         loadNotes();
     }
+}
+
+// Export SINGLE note as .txt
+function exportNote(index) {
+    let notes = JSON.parse(localStorage.getItem("notes"));
+    let content = decrypt(notes[index].text);
+
+    let blob = new Blob([content], { type: "text/plain" });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "note.txt";
+    a.click();
 }
 
 // Delete
@@ -157,45 +171,13 @@ function searchNotes() {
                 <small>${n.time}</small><br>
                 <button onclick="toggleNote(${index})">Show / Hide</button>
                 <button onclick="editNote(${index})">Edit</button>
+                <button onclick="exportNote(${index})">Export</button>
                 <button onclick="deleteNote(${index})">Delete</button>
             `;
 
             list.appendChild(li);
         }
     });
-}
-
-// Export notes
-function exportNotes() {
-    let data = localStorage.getItem("notes");
-
-    let blob = new Blob([data], { type: "application/json" });
-    let url = URL.createObjectURL(blob);
-
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "notes.json";
-    a.click();
-}
-
-// Import notes
-function importNotes() {
-    let file = document.getElementById("importFile").files[0];
-
-    if (!file) return;
-
-    let reader = new FileReader();
-
-    reader.onload = function (e) {
-        let imported = JSON.parse(e.target.result);
-
-        localStorage.setItem("notes", JSON.stringify(imported));
-
-        alert("Notes imported!");
-        loadNotes();
-    };
-
-    reader.readAsText(file);
 }
 
 // Auto lock
