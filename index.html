@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Encrypted Notes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>🔐 Encrypted Notes</h1>
+
+<!-- Setup -->
+<div id="setup">
+    <h3>Create Master Password</h3>
+    <input type="password" id="setPass" placeholder="Enter password">
+    <button onclick="setPassword()">Set Password</button>
+</div>
+
+<!-- Login -->
+<div id="login" style="display:none;">
+    <h3>Login</h3>
+    <input type="password" id="loginPass" placeholder="Enter password">
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- App -->
+<div id="app" style="display:none;">
+    <h3>Add Note</h3>
+    <textarea id="noteInput" placeholder="Write your note..."></textarea>
+    <button onclick="saveNote()">Save Note</button>
+
+    <h3>Your Notes</h3>
+    <ul id="notesList"></ul>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
