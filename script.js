@@ -1,4 +1,5 @@
 let masterKey = "";
+let timeout;
 
 // Check setup
 window.onload = function () {
@@ -36,6 +37,7 @@ function login() {
         document.getElementById("app").style.display = "block";
 
         loadNotes();
+        resetTimer();
     } else {
         alert("Wrong password");
     }
@@ -60,7 +62,12 @@ function saveNote() {
 
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
-    notes.push(encrypt(note));
+    let time = new Date().toLocaleString();
+
+    notes.push({
+        text: encrypt(note),
+        time: time
+    });
 
     localStorage.setItem("notes", JSON.stringify(notes));
 
@@ -79,11 +86,10 @@ function loadNotes() {
     notes.forEach((n, index) => {
         let li = document.createElement("li");
 
-        let decrypted = decrypt(n);
-
         li.innerHTML = `
-            ${decrypted}
-            <br>
+            <span id="note-${index}">••••••</span><br>
+            <small>${n.time}</small><br>
+            <button onclick="toggleNote(${index}, '${n.text}')">Show</button>
             <button onclick="deleteNote(${index})">Delete</button>
         `;
 
@@ -91,7 +97,18 @@ function loadNotes() {
     });
 }
 
-// Delete note
+// Toggle show/hide
+function toggleNote(index, encrypted) {
+    let el = document.getElementById(`note-${index}`);
+
+    if (el.innerText === "••••••") {
+        el.innerText = decrypt(encrypted);
+    } else {
+        el.innerText = "••••••";
+    }
+}
+
+// Delete one note
 function deleteNote(index) {
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
@@ -101,3 +118,34 @@ function deleteNote(index) {
 
     loadNotes();
 }
+
+// Delete all notes
+function clearNotes() {
+    if (confirm("Delete all notes?")) {
+        localStorage.removeItem("notes");
+        loadNotes();
+    }
+}
+
+// Search notes
+function searchNotes() {
+    let input = document.getElementById("search").value.toLowerCase();
+    let notes = document.querySelectorAll("#notesList li");
+
+    notes.forEach(note => {
+        let text = note.innerText.toLowerCase();
+        note.style.display = text.includes(input) ? "" : "none";
+    });
+}
+
+// Auto lock
+function resetTimer() {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+        alert("Session expired!");
+        location.reload();
+    }, 60000);
+}
+
+document.onmousemove = resetTimer;
+document.onkeypress = resetTimer;
