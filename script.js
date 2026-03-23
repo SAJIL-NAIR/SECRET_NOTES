@@ -1,7 +1,7 @@
 let masterKey = "";
 let timeout;
 
-// Check setup
+// Load check
 window.onload = function () {
     if (localStorage.getItem("masterPass")) {
         document.getElementById("setup").style.display = "none";
@@ -15,10 +15,7 @@ window.onload = function () {
 function setPassword() {
     let pass = document.getElementById("setPass").value;
 
-    if (!pass) {
-        alert("Enter password");
-        return;
-    }
+    if (!pass) return alert("Enter password");
 
     localStorage.setItem("masterPass", pass);
     alert("Password set!");
@@ -43,12 +40,11 @@ function login() {
     }
 }
 
-// Encrypt
+// Encrypt / Decrypt
 function encrypt(text) {
     return CryptoJS.AES.encrypt(text, masterKey).toString();
 }
 
-// Decrypt
 function decrypt(text) {
     let bytes = CryptoJS.AES.decrypt(text, masterKey);
     return bytes.toString(CryptoJS.enc.Utf8);
@@ -57,7 +53,6 @@ function decrypt(text) {
 // Save note
 function saveNote() {
     let note = document.getElementById("noteInput").value;
-
     if (!note) return;
 
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
@@ -71,7 +66,6 @@ function saveNote() {
     localStorage.setItem("notes", JSON.stringify(notes));
 
     document.getElementById("noteInput").value = "";
-
     loadNotes();
 }
 
@@ -83,15 +77,13 @@ function loadNotes() {
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
     notes.forEach((n, index) => {
-        // safety check (prevents undefined issue)
-        if (!n.raw) n.raw = "";
-
         let li = document.createElement("li");
 
         li.innerHTML = `
             <span id="note-${index}">••••••</span><br>
-            <small>${n.time || ""}</small><br>
+            <small>${n.time}</small><br>
             <button onclick="toggleNote(${index})">Show / Hide</button>
+            <button onclick="editNote(${index})">Edit</button>
             <button onclick="deleteNote(${index})">Delete</button>
         `;
 
@@ -99,9 +91,9 @@ function loadNotes() {
     });
 }
 
-// Toggle show/hide
+// Toggle
 function toggleNote(index) {
-    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let notes = JSON.parse(localStorage.getItem("notes"));
     let el = document.getElementById(`note-${index}`);
 
     if (el.innerText === "••••••") {
@@ -111,12 +103,30 @@ function toggleNote(index) {
     }
 }
 
-// Delete one
+// Edit note
+function editNote(index) {
+    let notes = JSON.parse(localStorage.getItem("notes"));
+    let current = decrypt(notes[index].text);
+
+    let updated = prompt("Edit your note:", current);
+
+    if (updated !== null && updated !== "") {
+        notes[index] = {
+            text: encrypt(updated),
+            raw: updated.toLowerCase(),
+            time: new Date().toLocaleString()
+        };
+
+        localStorage.setItem("notes", JSON.stringify(notes));
+        loadNotes();
+    }
+}
+
+// Delete
 function deleteNote(index) {
-    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let notes = JSON.parse(localStorage.getItem("notes"));
 
     notes.splice(index, 1);
-
     localStorage.setItem("notes", JSON.stringify(notes));
 
     loadNotes();
@@ -130,7 +140,7 @@ function clearNotes() {
     }
 }
 
-// Search (FINAL FIXED)
+// Search
 function searchNotes() {
     let input = document.getElementById("search").value.toLowerCase();
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
@@ -139,21 +149,53 @@ function searchNotes() {
     list.innerHTML = "";
 
     notes.forEach((n, index) => {
-        if (!n.raw) return;
-
         if (n.raw.includes(input)) {
             let li = document.createElement("li");
 
             li.innerHTML = `
                 <span id="note-${index}">••••••</span><br>
-                <small>${n.time || ""}</small><br>
+                <small>${n.time}</small><br>
                 <button onclick="toggleNote(${index})">Show / Hide</button>
+                <button onclick="editNote(${index})">Edit</button>
                 <button onclick="deleteNote(${index})">Delete</button>
             `;
 
             list.appendChild(li);
         }
     });
+}
+
+// Export notes
+function exportNotes() {
+    let data = localStorage.getItem("notes");
+
+    let blob = new Blob([data], { type: "application/json" });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "notes.json";
+    a.click();
+}
+
+// Import notes
+function importNotes() {
+    let file = document.getElementById("importFile").files[0];
+
+    if (!file) return;
+
+    let reader = new FileReader();
+
+    reader.onload = function (e) {
+        let imported = JSON.parse(e.target.result);
+
+        localStorage.setItem("notes", JSON.stringify(imported));
+
+        alert("Notes imported!");
+        loadNotes();
+    };
+
+    reader.readAsText(file);
 }
 
 // Auto lock
