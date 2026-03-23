@@ -64,7 +64,7 @@ function saveNote() {
 
     notes.push({
         text: encrypt(note),
-        raw: note.toLowerCase(), // IMPORTANT for search
+        raw: note.toLowerCase(),
         time: new Date().toLocaleString()
     });
 
@@ -83,11 +83,14 @@ function loadNotes() {
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
     notes.forEach((n, index) => {
+        // safety check (prevents undefined issue)
+        if (!n.raw) n.raw = "";
+
         let li = document.createElement("li");
 
         li.innerHTML = `
             <span id="note-${index}">••••••</span><br>
-            <small>${n.time}</small><br>
+            <small>${n.time || ""}</small><br>
             <button onclick="toggleNote(${index})">Show / Hide</button>
             <button onclick="deleteNote(${index})">Delete</button>
         `;
@@ -96,7 +99,7 @@ function loadNotes() {
     });
 }
 
-// Toggle show/hide (FIXED)
+// Toggle show/hide
 function toggleNote(index) {
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
     let el = document.getElementById(`note-${index}`);
@@ -108,7 +111,7 @@ function toggleNote(index) {
     }
 }
 
-// Delete one note
+// Delete one
 function deleteNote(index) {
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
@@ -119,7 +122,7 @@ function deleteNote(index) {
     loadNotes();
 }
 
-// Clear all (FIXED)
+// Clear all
 function clearNotes() {
     if (confirm("Delete all notes?")) {
         localStorage.setItem("notes", JSON.stringify([]));
@@ -127,7 +130,7 @@ function clearNotes() {
     }
 }
 
-// Search (FIXED properly)
+// Search (FINAL FIXED)
 function searchNotes() {
     let input = document.getElementById("search").value.toLowerCase();
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
@@ -136,12 +139,14 @@ function searchNotes() {
     list.innerHTML = "";
 
     notes.forEach((n, index) => {
+        if (!n.raw) return;
+
         if (n.raw.includes(input)) {
             let li = document.createElement("li");
 
             li.innerHTML = `
                 <span id="note-${index}">••••••</span><br>
-                <small>${n.time}</small><br>
+                <small>${n.time || ""}</small><br>
                 <button onclick="toggleNote(${index})">Show / Hide</button>
                 <button onclick="deleteNote(${index})">Delete</button>
             `;
