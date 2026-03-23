@@ -62,11 +62,10 @@ function saveNote() {
 
     let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
-    let time = new Date().toLocaleString();
-
     notes.push({
         text: encrypt(note),
-        time: time
+        raw: note.toLowerCase(), // IMPORTANT for search
+        time: new Date().toLocaleString()
     });
 
     localStorage.setItem("notes", JSON.stringify(notes));
@@ -89,7 +88,7 @@ function loadNotes() {
         li.innerHTML = `
             <span id="note-${index}">••••••</span><br>
             <small>${n.time}</small><br>
-            <button onclick="toggleNote(${index}, '${n.text}')">Show</button>
+            <button onclick="toggleNote(${index})">Show / Hide</button>
             <button onclick="deleteNote(${index})">Delete</button>
         `;
 
@@ -97,12 +96,13 @@ function loadNotes() {
     });
 }
 
-// Toggle show/hide
-function toggleNote(index, encrypted) {
+// Toggle show/hide (FIXED)
+function toggleNote(index) {
+    let notes = JSON.parse(localStorage.getItem("notes")) || [];
     let el = document.getElementById(`note-${index}`);
 
     if (el.innerText === "••••••") {
-        el.innerText = decrypt(encrypted);
+        el.innerText = decrypt(notes[index].text);
     } else {
         el.innerText = "••••••";
     }
@@ -119,22 +119,35 @@ function deleteNote(index) {
     loadNotes();
 }
 
-// Delete all notes
+// Clear all (FIXED)
 function clearNotes() {
     if (confirm("Delete all notes?")) {
-        localStorage.removeItem("notes");
+        localStorage.setItem("notes", JSON.stringify([]));
         loadNotes();
     }
 }
 
-// Search notes
+// Search (FIXED properly)
 function searchNotes() {
     let input = document.getElementById("search").value.toLowerCase();
-    let notes = document.querySelectorAll("#notesList li");
+    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let list = document.getElementById("notesList");
 
-    notes.forEach(note => {
-        let text = note.innerText.toLowerCase();
-        note.style.display = text.includes(input) ? "" : "none";
+    list.innerHTML = "";
+
+    notes.forEach((n, index) => {
+        if (n.raw.includes(input)) {
+            let li = document.createElement("li");
+
+            li.innerHTML = `
+                <span id="note-${index}">••••••</span><br>
+                <small>${n.time}</small><br>
+                <button onclick="toggleNote(${index})">Show / Hide</button>
+                <button onclick="deleteNote(${index})">Delete</button>
+            `;
+
+            list.appendChild(li);
+        }
     });
 }
 
