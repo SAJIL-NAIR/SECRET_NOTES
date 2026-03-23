@@ -24,9 +24,13 @@
 
 <!-- App -->
 <div id="app" style="display:none;">
+    
+    <input type="text" id="search" placeholder="🔍 Search notes..." onkeyup="searchNotes()">
+
     <h3>Add Note</h3>
     <textarea id="noteInput" placeholder="Write your note..."></textarea>
     <button onclick="saveNote()">Save Note</button>
+    <button onclick="clearNotes()">Clear All</button>
 
     <h3>Your Notes</h3>
     <ul id="notesList"></ul>
